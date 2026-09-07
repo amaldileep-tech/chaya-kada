@@ -1,10 +1,9 @@
-// 1) Create a Supabase project.
-// 2) Run supabase.sql in the Supabase SQL Editor.
-// 3) Paste Project URL and anon public key below.
-// Until then the website works in LOCAL DEMO mode on one browser.
+// CHAYA KADA V2
+// Paste ONLY the Supabase Project URL and anon/public key here.
+// Never put a service-role/secret key in a public website.
 
 window.CHAYA_CONFIG = {
-  SUPABASE_URL: "",
-  SUPABASE_ANON_KEY: "",
+  SUPABASE_URL: "https://yxawxlizojgjfuhikuzo.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_vgmF-65zRoW55b9SkrFEbg_rz7Q8rnX",
   OFFICE_CODE: "CHAYA2026"
 };

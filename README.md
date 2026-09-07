@@ -1,4 +1,4 @@
-# ☕ Chaya Kada
+# ☕ Chaya Kada V2
 
 A responsive office tea-call + bill-splitting website with Malayalam flavour.
 
@@ -14,7 +14,8 @@ A responsive office tea-call + bill-splitting website with Malayalam flavour.
 - Responsive phone + laptop UI
 - Your supplied tea images included
 - Local demo mode (no database required)
-- Optional Supabase shared realtime mode for many phones/laptops
+- Supabase shared realtime mode for many phones/laptops
+- Same office code = same live room/data
 
 ## Quick local test
 You can double-click `index.html`, but a tiny local web server is more reliable.
@@ -38,6 +39,9 @@ CHAYA2026
 ```
 
 Change it in `supabase-config.js`.
+
+## IMPORTANT: GitHub Pages alone is not shared
+GitHub Pages only hosts the frontend. To make Chaya Calls and bills appear on other phones, connect Supabase.
 
 ## Make it shared for everyone
 1. Create a free Supabase project.

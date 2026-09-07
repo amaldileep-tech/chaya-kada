@@ -6,6 +6,7 @@
   const LOCAL_KEY = "chaya-kada-demo-v1";
   const NAME_KEY = "chaya-kada-name";
   const CODE_KEY = "chaya-kada-code-ok";
+  const ROOM_KEY = "chaya-kada-office-code";
   const DEVICE_KEY = "chaya-kada-device-id";
   const quotes = [
     "ജോലി ഒക്കെ അവിടെ നിക്കട്ടെ… ആദ്യം ഒരു ചായ.",
@@ -28,6 +29,7 @@
   const esc = s => String(s ?? "").replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 
   let me = localStorage.getItem(NAME_KEY) || "";
+  let officeCode = localStorage.getItem(ROOM_KEY) || String(CFG.OFFICE_CODE || "CHAYA2026");
   let deviceId = localStorage.getItem(DEVICE_KEY) || uid();
   localStorage.setItem(DEVICE_KEY, deviceId);
   let db = null;
@@ -85,10 +87,10 @@
   async function pullAll(){
     if (!isOnline) return;
     const [u,s,m,p] = await Promise.all([
-      db.from("chaya_users").select("*").order("created_at"),
-      db.from("tea_sessions").select("*").order("started_at", {ascending:false}),
-      db.from("session_members").select("*").order("joined_at"),
-      db.from("payments").select("*").order("created_at")
+      db.from("chaya_users").select("*").eq("office_code", officeCode).order("created_at"),
+      db.from("tea_sessions").select("*").eq("office_code", officeCode).order("started_at", {ascending:false}),
+      db.from("session_members").select("*").eq("office_code", officeCode).order("joined_at"),
+      db.from("payments").select("*").eq("office_code", officeCode).order("created_at")
     ]);
     for (const r of [u,s,m,p]) if (r.error) throw r.error;
     state = { users:u.data||[], sessions:s.data||[], members:m.data||[], payments:p.data||[] };
@@ -97,11 +99,12 @@
   function subscribeRealtime(){
     if (!isOnline || !db) return;
     if (realtimeChannel) db.removeChannel(realtimeChannel);
-    realtimeChannel = db.channel("chaya-kada-live")
-      .on("postgres_changes", {event:"*", schema:"public", table:"tea_sessions"}, syncAndRender)
-      .on("postgres_changes", {event:"*", schema:"public", table:"session_members"}, syncAndRender)
-      .on("postgres_changes", {event:"*", schema:"public", table:"payments"}, syncAndRender)
-      .on("postgres_changes", {event:"*", schema:"public", table:"chaya_users"}, syncAndRender)
+    const roomFilter = `office_code=eq.${officeCode}`;
+    realtimeChannel = db.channel(`chaya-kada-live-${officeCode}`)
+      .on("postgres_changes", {event:"*", schema:"public", table:"tea_sessions", filter:roomFilter}, syncAndRender)
+      .on("postgres_changes", {event:"*", schema:"public", table:"session_members", filter:roomFilter}, syncAndRender)
+      .on("postgres_changes", {event:"*", schema:"public", table:"payments", filter:roomFilter}, syncAndRender)
+      .on("postgres_changes", {event:"*", schema:"public", table:"chaya_users", filter:roomFilter}, syncAndRender)
       .subscribe();
   }
   let syncTimer;
@@ -114,26 +117,26 @@
     const el = $("#syncBadge");
     if (!el) return;
     el.className = `sync-badge ${isOnline ? "online" : "local"}`;
-    el.textContent = isOnline ? "● Live shared" : "● Local demo";
+    el.textContent = isOnline ? `● Live shared • ${officeCode}` : "● NOT SHARED • connect Supabase";
   }
 
   async function registerUser(name){
     const clean = name.trim().slice(0,28);
     if (!clean) return;
     if (isOnline){
-      const existing = state.users.find(u => u.device_id === deviceId);
+      const existing = state.users.find(u => u.device_id === deviceId && u.office_code === officeCode);
       if (existing){
         const {error} = await db.from("chaya_users").update({name:clean}).eq("id", existing.id);
         if (error) throw error;
       }else{
-        const {error} = await db.from("chaya_users").insert({name:clean, device_id:deviceId});
+        const {error} = await db.from("chaya_users").insert({name:clean, device_id:deviceId, office_code:officeCode});
         if (error && !String(error.message).includes("duplicate")) throw error;
       }
       await pullAll();
     }else{
-      let u = state.users.find(u => u.device_id === deviceId);
+      let u = state.users.find(u => u.device_id === deviceId && (u.office_code || officeCode) === officeCode);
       if (u) u.name = clean;
-      else state.users.push({id:uid(), name:clean, device_id:deviceId, created_at:nowISO()});
+      else state.users.push({id:uid(), name:clean, device_id:deviceId, office_code:officeCode, created_at:nowISO()});
       saveLocal();
     }
   }
@@ -145,16 +148,16 @@
       toast("Already one Chaya Call is live — you joined it ☕", "success");
       return;
     }
-    const session = {id:uid(), created_by:me, status:"active", started_at:nowISO(), total_amount:null, payer_name:null, closed_at:null};
+    const session = {id:uid(), office_code:officeCode, created_by:me, status:"active", started_at:nowISO(), total_amount:null, payer_name:null, closed_at:null};
     if (isOnline){
       const payload = {...session}; delete payload.id;
       const {data,error} = await db.from("tea_sessions").insert(payload).select().single();
       if (error) throw error;
-      await db.from("session_members").insert({session_id:data.id, name:me});
+      await db.from("session_members").insert({session_id:data.id, name:me, office_code:officeCode});
       await pullAll();
     }else{
       state.sessions.unshift(session);
-      state.members.push({id:uid(), session_id:session.id, name:me, joined_at:nowISO()});
+      state.members.push({id:uid(), session_id:session.id, name:me, office_code:officeCode, joined_at:nowISO()});
       saveLocal();
     }
     renderAll();
@@ -165,11 +168,11 @@
     const exists = membersFor(sessionId).some(m => m.name.toLowerCase() === me.toLowerCase());
     if (exists){ toast("നീ already gang-il ഉണ്ട് 😎"); return; }
     if (isOnline){
-      const {error} = await db.from("session_members").insert({session_id:sessionId, name:me});
+      const {error} = await db.from("session_members").insert({session_id:sessionId, name:me, office_code:officeCode});
       if (error && !String(error.message).includes("duplicate")) throw error;
       await pullAll();
     }else{
-      state.members.push({id:uid(), session_id:sessionId, name:me, joined_at:nowISO()}); saveLocal();
+      state.members.push({id:uid(), session_id:sessionId, name:me, office_code:officeCode, joined_at:nowISO()}); saveLocal();
     }
     renderAll(); toast("Gang-il ചേർന്നു ☕", "success");
   }
@@ -189,11 +192,11 @@
     const debts = names.filter(n => n !== payer).map(n => ({from_name:n,to_name:payer,amount:Number(per.toFixed(2)),status:"pending"}));
     if (isOnline){
       const {error} = await db.from("tea_sessions").update({status:"completed",total_amount:Number(total),payer_name:payer,closed_at:nowISO()}).eq("id",s.id); if(error) throw error;
-      if (debts.length){ const r = await db.from("payments").insert(debts.map(d=>({...d,session_id:s.id}))); if(r.error) throw r.error; }
+      if (debts.length){ const r = await db.from("payments").insert(debts.map(d=>({...d,session_id:s.id,office_code:officeCode}))); if(r.error) throw r.error; }
       await pullAll();
     }else{
       Object.assign(s,{status:"completed",total_amount:Number(total),payer_name:payer,closed_at:nowISO()});
-      debts.forEach(d=>state.payments.push({id:uid(),session_id:s.id,created_at:nowISO(),...d})); saveLocal();
+      debts.forEach(d=>state.payments.push({id:uid(),session_id:s.id,office_code:officeCode,created_at:nowISO(),...d})); saveLocal();
     }
     renderAll();
     navigate("split");
@@ -322,12 +325,14 @@
     $("#billAmount").addEventListener("input",renderSplitPreview);
     $("#selectAllBtn").onclick=()=>{const inputs=$$("#memberPicker input");const all=inputs.every(i=>i.checked);inputs.forEach(i=>{i.checked=!all;i.closest('label').classList.toggle('checked',!all)});renderSplitPreview();};
     $("#splitForm").onsubmit=e=>{e.preventDefault();const total=Number($("#billAmount").value);const payer=$("#payerSelect").value;const names=$$("#memberPicker input:checked").map(i=>i.value);if(!names.length)return toast("Select at least one person","error");safe(()=>createSplit(total,payer,names));};
-    $("#logoutBtn").onclick=()=>{localStorage.removeItem(NAME_KEY);localStorage.removeItem(CODE_KEY);location.reload();};
+    $("#logoutBtn").onclick=()=>{localStorage.removeItem(NAME_KEY);localStorage.removeItem(CODE_KEY);localStorage.removeItem(ROOM_KEY);location.reload();};
     $("#profileMenuBtn").onclick=()=>toast("Use “Change name” on top to switch user");
     $("#gateForm").onsubmit=e=>safe(async()=>{
       e.preventDefault(); const name=$("#nameInput").value.trim(); const code=$("#codeInput").value.trim();
       if(code !== String(CFG.OFFICE_CODE||"CHAYA2026")) return toast("Office code തെറ്റാണ് 😅","error");
-      me=name; localStorage.setItem(NAME_KEY,me);localStorage.setItem(CODE_KEY,"yes");await registerUser(me);showApp();renderAll();
+      me=name; officeCode=code; localStorage.setItem(NAME_KEY,me);localStorage.setItem(CODE_KEY,"yes");localStorage.setItem(ROOM_KEY,officeCode);
+      if (isOnline){ await pullAll(); subscribeRealtime(); }
+      await registerUser(me);showApp();renderAll();
     });
   }
 
