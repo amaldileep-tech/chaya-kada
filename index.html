@@ -3,44 +3,59 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#160d08" />
-  <meta name="description" content="Chaya Kada — office tea calls, bill splitting and fun stats." />
+  <meta name="theme-color" content="#120a07" />
+  <meta name="description" content="Chaya Kada — secure office tea calls, chat, bill splitting and funny chaya stats." />
   <title>Chaya Kada ☕</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Malayalam:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Malayalam:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div class="ambient ambient-a"></div>
+  <div class="ambient ambient-b"></div>
   <div class="noise"></div>
   <div id="toastHost" class="toast-host" aria-live="polite"></div>
 
   <section id="gate" class="gate-screen hidden">
-    <div class="gate-card glass">
-      <div class="brand-mark">☕</div>
-      <p class="eyebrow">OFFICE CHAYA CLUB</p>
-      <h1>നമ്മുടെ <span>ചായക്കട</span></h1>
-      <p class="gate-copy">ഒരു പേര് മതി. പിന്നെ ചായ, കടി, കണക്ക് എല്ലാം ഇവിടെ.</p>
-      <form id="gateForm" class="gate-form">
-        <label for="nameInput">നിങ്ങളുടെ പേര്</label>
-        <input id="nameInput" maxlength="28" autocomplete="name" placeholder="ഉദാ: Amal" required />
-        <label for="codeInput">Office code</label>
-        <input id="codeInput" maxlength="20" autocomplete="off" placeholder="Enter shared code" required />
-        <button class="btn btn-primary btn-wide" type="submit">തുടക്കം കുറിക്കാം ☕</button>
-      </form>
-      <small id="gateHint">ഈ browser പേര് ഓർത്തുവയ്ക്കും.</small>
+    <div class="gate-layout">
+      <div class="gate-visual">
+        <img src="assets/chaya-pour.jpg" alt="Hot tea being poured" />
+        <div class="gate-overlay"></div>
+        <div class="gate-copy-block">
+          <span class="gate-badge">☕ OFFICE BREAK CULTURE</span>
+          <h1>ചായ കുടിക്കാൻ<br><em>പോയാലോ?</em></h1>
+          <p>ചായ. കടി. കഥ. കണക്ക്. എല്ലാം ഒരേ സ്ഥലത്ത്.</p>
+        </div>
+      </div>
+
+      <div class="gate-card glass">
+        <div class="brand-lockup"><span>☕</span><div><b>Chaya</b><em>Kada</em></div></div>
+        <p class="eyebrow">SECURE OFFICE ROOM</p>
+        <h2>ആരാണ് ഇന്നത്തെ ചായക്കാരൻ? 😌</h2>
+        <p class="gate-copy">Same office code ഉപയോഗിക്കുന്നവർ മാത്രം ഒരേ room-ൽ കാണും.</p>
+        <form id="gateForm" class="gate-form">
+          <label for="nameInput">നിങ്ങളുടെ പേര്</label>
+          <input id="nameInput" maxlength="28" autocomplete="name" placeholder="ഉദാ: Amal" required />
+          <label for="codeInput">Office code</label>
+          <input id="codeInput" maxlength="64" type="password" autocomplete="off" placeholder="Shared office code" required />
+          <button class="btn btn-primary btn-wide" type="submit">അകത്ത് കയറാം ☕</button>
+        </form>
+        <div class="security-note">🔒 Office code browser bundle-ൽ hardcode ചെയ്തിട്ടില്ല. Supabase room access ഉപയോഗിച്ചാണ് data തുറക്കുന്നത്.</div>
+      </div>
     </div>
   </section>
 
   <div id="app" class="app-shell hidden">
     <aside class="sidebar">
-      <a class="brand" href="#home" aria-label="Chaya Kada home">
+      <a class="brand" href="#" data-view="home" aria-label="Chaya Kada home">
         <span class="brand-icon">☕</span>
         <span><b>Chaya</b><em>Kada</em></span>
       </a>
 
       <nav class="side-nav" aria-label="Main navigation">
         <button class="nav-item active" data-view="home"><span>⌂</span> Home</button>
+        <button class="nav-item" data-view="chat"><span>💬</span> Chat <i id="sideChatBadge" class="nav-badge hidden">0</i></button>
         <button class="nav-item" data-view="split"><span>₹</span> Split</button>
         <button class="nav-item" data-view="history"><span>◷</span> History</button>
         <button class="nav-item" data-view="stats"><span>♛</span> Chaya Stats</button>
@@ -48,12 +63,12 @@
 
       <div class="sidebar-quote glass-soft">
         <p id="sideQuoteMl">“ചായ ഉണ്ടെങ്കിൽ കഥയും ഉണ്ടാകും.”</p>
-        <span>— Chaya Kada</span>
+        <span>— ചായക്കട wisdom</span>
       </div>
 
       <div class="profile-mini">
         <div id="profileAvatar" class="avatar">A</div>
-        <div><strong id="profileName">Amal</strong><small>Chaya member</small></div>
+        <div><strong id="profileName">Amal</strong><small id="roomLabel">Chaya member</small></div>
         <button id="profileMenuBtn" class="icon-btn" aria-label="Profile options">•••</button>
       </div>
     </aside>
@@ -65,7 +80,9 @@
           <h2 id="helloText">എന്താ Amal… ഒരു ചായ ആയാലോ? ☕</h2>
         </div>
         <div class="top-actions">
-          <span id="syncBadge" class="sync-badge local">● Local demo</span>
+          <span id="syncBadge" class="sync-badge local">● Connecting…</span>
+          <button id="notifyBtn" class="notify-btn" title="Enable browser notifications">🔔 <span>Notifications</span></button>
+          <button id="adminBtn" class="admin-entry" title="Admin">🛡 <span>Admin</span></button>
           <button id="refreshBtn" class="icon-btn" title="Refresh">↻</button>
           <button id="logoutBtn" class="ghost-btn">Change name</button>
         </div>
@@ -84,6 +101,7 @@
               <button id="joinCallBtn" class="btn btn-glass">🙋 ഞാൻ വരുന്നു</button>
             </div>
           </div>
+          <div class="hero-sticker">ചായ<br><strong>priority</strong></div>
         </div>
 
         <div class="dashboard-grid">
@@ -95,7 +113,7 @@
             <div id="gangList" class="gang-list empty-state">
               <div class="empty-icon">☕</div>
               <p>ഇന്നത്തെ ആദ്യ ചായ call ഇനിയും വന്നിട്ടില്ല.</p>
-              <small>Start a call and everyone can join.</small>
+              <small>Start a call and everyone in this office room can join.</small>
             </div>
             <div id="sessionActions" class="session-actions hidden">
               <button id="goSplitBtn" class="btn btn-secondary">💸 Bill വന്നോ? Split ചെയ്യാം</button>
@@ -117,6 +135,58 @@
           <article><span>💰</span><div><small>Total Spent</small><strong id="statSpent">AED 0</strong></div></article>
           <article><span>👑</span><div><small>Chaya King</small><strong id="statKing">—</strong></div></article>
           <article><span>💸</span><div><small>Pending</small><strong id="statPending">AED 0</strong></div></article>
+        </div>
+
+        <section class="meme-section">
+          <div class="section-title-row">
+            <div><p class="eyebrow">OFFICE MOOD BOARD 😂</p><h3>ചായക്കട Reaction Pack</h3></div>
+            <span class="tiny-note">Swipe →</span>
+          </div>
+          <div class="meme-rail">
+            <figure class="meme-card tilt-a"><img src="assets/meme-01.jpg" alt="Malayalam tea meme"><figcaption>ചായ mood: ON ☕</figcaption></figure>
+            <figure class="meme-card tilt-b"><img src="assets/meme-02.jpg" alt="Malayalam reaction meme"><figcaption>“എന്താ… ചായ?” 😏</figcaption></figure>
+            <figure class="meme-card tilt-c"><img src="assets/meme-03.jpg" alt="Malayalam funny meme"><figcaption>Meeting ശേഷം ഇതേ face 😂</figcaption></figure>
+            <figure class="meme-card tilt-a"><img src="assets/meme-04.jpg" alt="Malayalam healthy tea meme"><figcaption>Healthy ആകട്ടെ… ആദ്യം ചായ ☕</figcaption></figure>
+            <figure class="meme-card tilt-b"><img src="assets/meme-05.jpg" alt="Malayalam illustrated meme"><figcaption>“ചായിക്കോ?” — dangerous question</figcaption></figure>
+            <figure class="meme-card tilt-c"><img src="assets/meme-06.jpg" alt="Malayalam tea illustration"><figcaption>കട്ടൻ inspection mode 👀</figcaption></figure>
+            <figure class="meme-card tilt-a"><img src="assets/meme-07.jpg" alt="Malayalam caricature meme"><figcaption>Budget കേട്ടപ്പോൾ 😭</figcaption></figure>
+            <figure class="meme-card tilt-b"><img src="assets/meme-08.jpg" alt="Malayalam reaction meme"><figcaption>Bill വന്നപ്പോൾ admin face 😐</figcaption></figure>
+          </div>
+        </section>
+      </section>
+
+      <section id="view-chat" class="view">
+        <div class="page-head chat-head">
+          <div><p class="eyebrow">PUBLIC INSIDE THIS OFFICE CODE</p><h1>💬 Chaya Chat</h1><p>Same office code ഉള്ള എല്ലാവർക്കും ഈ chat live ആയി കാണാം.</p></div>
+          <span id="chatRoomStatus" class="status-pill live">● Live room</span>
+        </div>
+
+        <div class="chat-layout">
+          <section class="panel chat-panel">
+            <div id="chatList" class="chat-list" aria-live="polite"></div>
+            <form id="chatForm" class="chat-composer">
+              <div class="emoji-row">
+                <button type="button" data-emoji="☕">☕</button>
+                <button type="button" data-emoji="😂">😂</button>
+                <button type="button" data-emoji="🔥">🔥</button>
+                <button type="button" data-emoji="😎">😎</button>
+                <button type="button" data-emoji="💸">💸</button>
+                <button type="button" data-emoji="🚶">🚶</button>
+              </div>
+              <div class="composer-row">
+                <input id="chatInput" maxlength="500" autocomplete="off" placeholder="ഉദാ: 5 minute… വരുന്നു 😂" required>
+                <button type="submit" class="btn btn-primary">Send</button>
+              </div>
+            </form>
+          </section>
+
+          <aside class="panel chat-side-card">
+            <div class="chat-side-art"><img src="assets/meme-02.jpg" alt="Funny Malayalam reaction"></div>
+            <p class="eyebrow">CHAT RULE #1</p>
+            <h3>പരദൂഷണം limited edition മാത്രം 😌</h3>
+            <p>Message office room-ലുള്ള എല്ലാവർക്കും visible. Admin can remove inappropriate messages.</p>
+            <button id="clearMyChatUnread" class="ghost-btn">Mark chat as read</button>
+          </aside>
         </div>
       </section>
 
@@ -181,15 +251,64 @@
           <div id="leaderboard" class="leaderboard"></div>
         </section>
       </section>
+
+      <section id="view-admin" class="view">
+        <div class="page-head admin-page-head">
+          <div><p class="eyebrow">PRIVATE CONTROL ROOM</p><h1>🛡 Admin</h1><p>People, events, chat moderation — admin account മാത്രം.</p></div>
+          <button id="adminLogoutBtn" class="ghost-btn danger-outline">Admin logout</button>
+        </div>
+
+        <div class="admin-grid">
+          <section class="panel admin-panel">
+            <div class="panel-head"><div><p class="eyebrow">PEOPLE</p><h3>Office Members</h3></div><span id="adminPeopleCount" class="status-pill">0 people</span></div>
+            <div id="adminPeopleList" class="admin-list"></div>
+          </section>
+
+          <section class="panel admin-panel">
+            <div class="panel-head"><div><p class="eyebrow">EVENTS</p><h3>Chaya Events</h3></div><span id="adminEventCount" class="status-pill">0 events</span></div>
+            <div id="adminEventList" class="admin-list"></div>
+          </section>
+        </div>
+
+        <section class="panel admin-panel admin-chat-panel">
+          <div class="panel-head">
+            <div><p class="eyebrow">CHAT MODERATION</p><h3>Recent Messages</h3></div>
+            <button id="adminClearChatBtn" class="ghost-btn danger-outline">Clear room chat</button>
+          </div>
+          <div id="adminChatList" class="admin-list"></div>
+        </section>
+
+        <div class="panel admin-note">
+          <strong>🔒 Security model</strong>
+          <p>Normal users get an anonymous Supabase Auth session and room membership only after the server verifies the office code. Row Level Security keeps other rooms invisible. Delete permissions are admin-only, except users may delete their own chat message.</p>
+        </div>
+      </section>
     </main>
 
     <nav class="bottom-nav" aria-label="Mobile navigation">
       <button class="bottom-item active" data-view="home"><span>⌂</span><small>Home</small></button>
+      <button class="bottom-item" data-view="chat"><span>💬</span><small>Chat</small><i id="mobileChatBadge" class="mobile-badge hidden">0</i></button>
       <button class="bottom-item" data-view="split"><span>₹</span><small>Split</small></button>
       <button class="bottom-item" data-view="history"><span>◷</span><small>History</small></button>
       <button class="bottom-item" data-view="stats"><span>♛</span><small>Stats</small></button>
     </nav>
   </div>
+
+  <dialog id="adminLoginDialog" class="modal glass admin-login-modal">
+    <form id="adminLoginForm">
+      <div class="modal-icon">🛡</div>
+      <h3>Admin Login</h3>
+      <p>Supabase Auth admin email & password ഉപയോഗിച്ച് login ചെയ്യൂ.</p>
+      <div class="admin-login-fields">
+        <input id="adminEmail" type="email" autocomplete="username" placeholder="Admin email" required>
+        <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Password" required>
+      </div>
+      <div class="modal-actions">
+        <button id="adminLoginCancel" type="button" class="btn btn-glass">Cancel</button>
+        <button type="submit" class="btn btn-primary">Login</button>
+      </div>
+    </form>
+  </dialog>
 
   <dialog id="confirmDialog" class="modal glass">
     <form method="dialog">

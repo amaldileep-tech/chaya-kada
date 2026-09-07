@@ -1,66 +1,60 @@
-# ☕ Chaya Kada V2
+# Chaya Kada V3 — Secure + Chat + Notifications + Admin
 
-A responsive office tea-call + bill-splitting website with Malayalam flavour.
+A responsive website for office tea calls, shared chat, bill splitting, fun stats and admin cleanup.
 
-## What already works
-- First-time name + shared office code
-- Start a Chaya Call
-- Join the current Chaya Gang
-- Enter total bill and payer
-- Auto split across selected people
-- Pending/paid settlement tracking
-- Tea trip history
-- Fun stats: Chaya King, biggest sponsor, most pending, total economy
-- Responsive phone + laptop UI
-- Your supplied tea images included
-- Local demo mode (no database required)
-- Supabase shared realtime mode for many phones/laptops
-- Same office code = same live room/data
+## What is new in V3
 
-## Quick local test
-You can double-click `index.html`, but a tiny local web server is more reliable.
+- Secure shared office room using Supabase Anonymous Auth + server-side office-code verification.
+- The office code is **not hardcoded in frontend source** and is not saved after a successful join; the browser keeps its Supabase room membership instead.
+- Row Level Security (RLS) prevents members of other rooms from reading your data.
+- Realtime Chaya Call across phones/laptops.
+- Public chat for everyone who joined the same office code.
+- Browser notifications for new Chaya Calls, chat messages and payment updates.
+- Service Worker included and Web Push backend code included for notifications even when the website is closed.
+- Secure admin login using Supabase Auth email/password + database allow-list.
+- Admin can delete people, events and chat messages, or clear the room chat.
+- Normal users cannot delete people/events. Users may delete only their own chat message.
+- Premium mobile + desktop UI.
+- The Malayalam/funny images supplied in chat are included as a reaction/mood wall.
 
-Python:
+## Important security change
 
-```bash
-python -m http.server 8080
-```
+Your old V1/V2 office code was present in public frontend code/GitHub history. Treat that old code as known.
 
-Then open:
+For V3, create a **new office code** and enter it only in Supabase SQL Editor using the private room setup template. Do not commit the real office code to GitHub.
 
-```text
-http://localhost:8080
-```
+## Correct deployment order
 
-Default office code:
+1. In Supabase, enable **Authentication > Anonymous Sign-Ins**.
+2. Run `supabase-v3-secure.sql` in SQL Editor.
+3. Open `PRIVATE-ROOM-SETUP-TEMPLATE.sql`, copy it into SQL Editor, replace `YOUR_OFFICE_CODE` with a new private code, Run it. Do not save the edited code in GitHub.
+4. Create your admin user in **Authentication > Users**.
+5. Run `ADMIN-SETUP-TEMPLATE.sql` in SQL Editor after replacing the placeholder email.
+6. Upload/push the V3 website files to GitHub Pages.
+7. Test from two browsers with the same new office code.
+8. Optional but recommended: finish closed-site Web Push using `PUSH-SETUP.md`.
 
-```text
-CHAYA2026
-```
+## Notification behaviour
 
-Change it in `supabase-config.js`.
+V3 has two notification layers:
 
-## IMPORTANT: GitHub Pages alone is not shared
-GitHub Pages only hosts the frontend. To make Chaya Calls and bills appear on other phones, connect Supabase.
-
-## Make it shared for everyone
-1. Create a free Supabase project.
-2. Open Supabase > SQL Editor and run `supabase.sql`.
-3. Open Project Settings > API.
-4. Copy your Project URL and anon public key.
-5. Paste them in `supabase-config.js`.
-6. Push this folder to GitHub.
-7. Import the GitHub repo into Vercel and deploy as a static site.
-
-No build command is required. Root directory is the folder containing `index.html`.
-
-## Important security note
-The current office code is a friendly frontend gate. It is not strong authentication because a public static site exposes its frontend code. For a small trusted office group this can be acceptable. For stronger privacy, add Supabase Auth (OTP/magic link) or restrict access through a private network/VPN.
+- **Immediate browser notifications:** works as soon as a user taps Notifications and keeps the site open/backgrounded while Supabase Realtime is connected.
+- **True Web Push when the site is closed:** the Service Worker + subscription database + Supabase Edge Function are already included. You still need to deploy the Edge Function and set the private VAPID secret. This private key is intentionally not stored in this public project.
 
 ## Files
-- `index.html` — UI
-- `styles.css` — responsive premium theme
-- `app.js` — app logic
-- `supabase-config.js` — backend URL/key + office code
-- `supabase.sql` — database schema + realtime setup
-- `assets/` — supplied tea photos
+
+- `index.html` — responsive website UI
+- `styles.css` — premium dark/funny Kerala-chaya styling
+- `app.js` — room access, realtime, chat, splitting, notifications, admin UI
+- `service-worker.js` — browser notification + Web Push handler
+- `supabase-config.js` — public Supabase URL/publishable key + public VAPID key
+- `supabase-v3-secure.sql` — secure V3 database schema and RLS
+- `PRIVATE-ROOM-SETUP-TEMPLATE.sql` — private office-code setup template
+- `ADMIN-SETUP-TEMPLATE.sql` — admin allow-list template
+- `PUSH-SETUP.md` — closed-site push setup
+- `supabase/functions/send-chaya-push/index.ts` — secure Web Push sender Edge Function
+- `assets/` — tea photos + supplied Malayalam reaction images
+
+## Website only
+
+This remains a normal website. No APK and no app installation is required. Android, iPhone, Windows, Mac and tablets can all use the same GitHub Pages URL.
