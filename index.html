@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#160d08" />
+  <meta name="description" content="Chaya Kada — office tea calls, bill splitting and fun stats." />
+  <title>Chaya Kada ☕</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Malayalam:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <div id="toastHost" class="toast-host" aria-live="polite"></div>
+
+  <section id="gate" class="gate-screen hidden">
+    <div class="gate-card glass">
+      <div class="brand-mark">☕</div>
+      <p class="eyebrow">OFFICE CHAYA CLUB</p>
+      <h1>നമ്മുടെ <span>ചായക്കട</span></h1>
+      <p class="gate-copy">ഒരു പേര് മതി. പിന്നെ ചായ, കടി, കണക്ക് എല്ലാം ഇവിടെ.</p>
+      <form id="gateForm" class="gate-form">
+        <label for="nameInput">നിങ്ങളുടെ പേര്</label>
+        <input id="nameInput" maxlength="28" autocomplete="name" placeholder="ഉദാ: Amal" required />
+        <label for="codeInput">Office code</label>
+        <input id="codeInput" maxlength="20" autocomplete="off" placeholder="Enter shared code" required />
+        <button class="btn btn-primary btn-wide" type="submit">തുടക്കം കുറിക്കാം ☕</button>
+      </form>
+      <small id="gateHint">ഈ browser പേര് ഓർത്തുവയ്ക്കും.</small>
+    </div>
+  </section>
+
+  <div id="app" class="app-shell hidden">
+    <aside class="sidebar">
+      <a class="brand" href="#home" aria-label="Chaya Kada home">
+        <span class="brand-icon">☕</span>
+        <span><b>Chaya</b><em>Kada</em></span>
+      </a>
+
+      <nav class="side-nav" aria-label="Main navigation">
+        <button class="nav-item active" data-view="home"><span>⌂</span> Home</button>
+        <button class="nav-item" data-view="split"><span>₹</span> Split</button>
+        <button class="nav-item" data-view="history"><span>◷</span> History</button>
+        <button class="nav-item" data-view="stats"><span>♛</span> Chaya Stats</button>
+      </nav>
+
+      <div class="sidebar-quote glass-soft">
+        <p id="sideQuoteMl">“ചായ ഉണ്ടെങ്കിൽ കഥയും ഉണ്ടാകും.”</p>
+        <span>— Chaya Kada</span>
+      </div>
+
+      <div class="profile-mini">
+        <div id="profileAvatar" class="avatar">A</div>
+        <div><strong id="profileName">Amal</strong><small>Chaya member</small></div>
+        <button id="profileMenuBtn" class="icon-btn" aria-label="Profile options">•••</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">GOOD TIME FOR A BREAK</p>
+          <h2 id="helloText">എന്താ Amal… ഒരു ചായ ആയാലോ? ☕</h2>
+        </div>
+        <div class="top-actions">
+          <span id="syncBadge" class="sync-badge local">● Local demo</span>
+          <button id="refreshBtn" class="icon-btn" title="Refresh">↻</button>
+          <button id="logoutBtn" class="ghost-btn">Change name</button>
+        </div>
+      </header>
+
+      <section id="view-home" class="view active">
+        <div class="hero-card">
+          <img src="assets/chaya-pour.jpg" alt="Hot tea being poured into a pot" />
+          <div class="hero-shade"></div>
+          <div class="hero-content">
+            <div class="live-pill"><span></span> CHAYA MODE</div>
+            <h1>ചായ കുടിക്കാൻ<br><span>പോയാലോ? ☕</span></h1>
+            <p id="heroQuote">“ജോലി ഒക്കെ അവിടെ നിക്കട്ടെ… ആദ്യം ഒരു ചായ.”</p>
+            <div class="hero-actions">
+              <button id="startCallBtn" class="btn btn-primary">🔥 CHAYA CALL ഇടാം</button>
+              <button id="joinCallBtn" class="btn btn-glass">🙋 ഞാൻ വരുന്നു</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <section class="panel gang-panel">
+            <div class="panel-head">
+              <div><p class="eyebrow">CURRENT PLAN</p><h3>Today's Chaya Gang</h3></div>
+              <span id="sessionStatus" class="status-pill">No active call</span>
+            </div>
+            <div id="gangList" class="gang-list empty-state">
+              <div class="empty-icon">☕</div>
+              <p>ഇന്നത്തെ ആദ്യ ചായ call ഇനിയും വന്നിട്ടില്ല.</p>
+              <small>Start a call and everyone can join.</small>
+            </div>
+            <div id="sessionActions" class="session-actions hidden">
+              <button id="goSplitBtn" class="btn btn-secondary">💸 Bill വന്നോ? Split ചെയ്യാം</button>
+              <button id="cancelSessionBtn" class="text-btn danger">Cancel call</button>
+            </div>
+          </section>
+
+          <section class="panel photo-panel">
+            <img src="assets/chaya-kadi.jpg" alt="Two glasses of tea with snacks" />
+            <div class="photo-caption">
+              <span>CHAYA + KADI</span>
+              <strong>കഥയ്ക്ക് ഇത്രയേ വേണ്ടൂ 😌</strong>
+            </div>
+          </section>
+        </div>
+
+        <div class="quick-stats">
+          <article><span>☕</span><div><small>Total Trips</small><strong id="statTrips">0</strong></div></article>
+          <article><span>💰</span><div><small>Total Spent</small><strong id="statSpent">AED 0</strong></div></article>
+          <article><span>👑</span><div><small>Chaya King</small><strong id="statKing">—</strong></div></article>
+          <article><span>💸</span><div><small>Pending</small><strong id="statPending">AED 0</strong></div></article>
+        </div>
+      </section>
+
+      <section id="view-split" class="view">
+        <div class="page-head">
+          <div><p class="eyebrow">NO CALCULATOR NEEDED</p><h1>💸 Bill Split</h1><p>“കണക്ക് തെറ്റിയാൽ സൗഹൃദം തെറ്റും… അതുകൊണ്ട് website നോക്കട്ടെ.” 😂</p></div>
+        </div>
+
+        <div class="split-layout">
+          <form id="splitForm" class="panel split-form">
+            <div class="form-row two">
+              <div>
+                <label for="billAmount">Total bill</label>
+                <div class="money-input"><span>AED</span><input id="billAmount" type="number" min="0.01" step="0.01" placeholder="48.00" required></div>
+              </div>
+              <div>
+                <label for="payerSelect">Who paid?</label>
+                <select id="payerSelect" required></select>
+              </div>
+            </div>
+
+            <div class="member-picker-head">
+              <div><label>Who drank?</label><small>Select everyone included in this bill.</small></div>
+              <button id="selectAllBtn" type="button" class="text-btn">Select all</button>
+            </div>
+            <div id="memberPicker" class="member-picker"></div>
+
+            <button type="submit" class="btn btn-primary btn-wide">SPLIT ചെയ്യാം ✨</button>
+          </form>
+
+          <aside class="panel split-preview">
+            <p class="eyebrow">LIVE PREVIEW</p>
+            <h3>ഓരോരുത്തർക്കും</h3>
+            <div id="perPersonAmount" class="big-money">AED 0.00</div>
+            <div id="splitPreviewRows" class="preview-rows">
+              <div class="empty-mini">Amount & members select ചെയ്താൽ കണക്ക് ഇവിടെ കാണാം.</div>
+            </div>
+          </aside>
+        </div>
+
+        <section class="panel pending-panel">
+          <div class="panel-head"><div><p class="eyebrow">SETTLEMENTS</p><h3>Pending Payments</h3></div></div>
+          <div id="pendingList" class="payment-list"></div>
+        </section>
+      </section>
+
+      <section id="view-history" class="view">
+        <div class="page-head"><div><p class="eyebrow">TEA LEAVES REMEMBER EVERYTHING</p><h1>📜 Chaya History</h1><p>പോയ ചായയും കൊടുത്ത കാശും ഇവിടെ മറക്കില്ല.</p></div></div>
+        <div id="historyList" class="history-list"></div>
+      </section>
+
+      <section id="view-stats" class="view">
+        <div class="page-head"><div><p class="eyebrow">VERY SERIOUS OFFICE ANALYTICS 😂</p><h1>🏆 Chaya Stats</h1><p>ഇവിടെ performance review ചായയ്ക്ക് മാത്രമാണ്.</p></div></div>
+        <div class="stats-hero-grid">
+          <article class="stat-card crown"><small>👑 CHAYA KING</small><strong id="kingName">—</strong><p>Most tea trips joined</p></article>
+          <article class="stat-card"><small>💳 BIGGEST SPONSOR</small><strong id="sponsorName">—</strong><p>Paid the most bills</p></article>
+          <article class="stat-card"><small>😂 MOST PENDING</small><strong id="pendingName">—</strong><p>Friendly reminder loading…</p></article>
+          <article class="stat-card"><small>🔥 TOTAL CHAYA ECONOMY</small><strong id="economyValue">AED 0</strong><p>All completed trips</p></article>
+        </div>
+        <section class="panel leaderboard-panel">
+          <div class="panel-head"><div><p class="eyebrow">LEADERBOARD</p><h3>Chaya Gang</h3></div></div>
+          <div id="leaderboard" class="leaderboard"></div>
+        </section>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Mobile navigation">
+      <button class="bottom-item active" data-view="home"><span>⌂</span><small>Home</small></button>
+      <button class="bottom-item" data-view="split"><span>₹</span><small>Split</small></button>
+      <button class="bottom-item" data-view="history"><span>◷</span><small>History</small></button>
+      <button class="bottom-item" data-view="stats"><span>♛</span><small>Stats</small></button>
+    </nav>
+  </div>
+
+  <dialog id="confirmDialog" class="modal glass">
+    <form method="dialog">
+      <div id="modalIcon" class="modal-icon">☕</div>
+      <h3 id="modalTitle">Ready?</h3>
+      <p id="modalText">Start a tea call?</p>
+      <div class="modal-actions">
+        <button value="cancel" class="btn btn-glass">Cancel</button>
+        <button id="modalConfirmBtn" value="confirm" class="btn btn-primary">Confirm</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
