@@ -1,4 +1,4 @@
-/* Chaya Kada V3 — secure room membership, realtime chat, browser notifications, admin moderation */
+/* Chaya Kada V3.2 — secure rooms + realtime + browser notifications + signature Chaya sounds */
 (() => {
   "use strict";
 
@@ -8,6 +8,7 @@
   const ROOM_NAME_KEY = "chaya-v3-room-name";
   const DEVICE_KEY = "chaya-v3-device-id";
   const LAST_CHAT_KEY = "chaya-v3-last-chat";
+  const SOUND_KEY = "chaya-v3-sound-enabled";
 
   const quotes = [
     "ജോലി ഒക്കെ അവിടെ നിക്കട്ടെ… ആദ്യം ഒരു ചായ.",
@@ -46,7 +47,97 @@
   let syncTimer = null;
   let state = { profiles: [], sessions: [], members: [], payments: [], messages: [] };
 
+  // ---------- Chaya Kada sound system ----------
+  // Web Audio keeps the build tiny: no MP3/WAV assets and no extra network requests.
+  let soundEnabled = localStorage.getItem(SOUND_KEY) !== "0";
+  let audioCtx = null;
+  let masterGain = null;
+
+  function ensureAudio() {
+    if (!soundEnabled) return null;
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return null;
+    if (!audioCtx) {
+      audioCtx = new AudioContext();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.24;
+      masterGain.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === "suspended") audioCtx.resume().catch(() => null);
+    return audioCtx;
+  }
+
+  function tone(freq, duration = 0.05, volume = 0.035, type = "sine", delay = 0) {
+    const ctx = ensureAudio();
+    if (!ctx || !masterGain) return;
+    const start = ctx.currentTime + delay;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, start);
+    gain.gain.setValueAtTime(Math.max(volume, 0.0001), start);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.start(start);
+    osc.stop(start + duration + 0.015);
+  }
+
+  function glassClink(delay = 0, strength = 1) {
+    // Short metallic partials approximate a tea-glass clink without an audio asset.
+    tone(1420, 0.12, 0.045 * strength, "sine", delay);
+    tone(2180, 0.09, 0.028 * strength, "sine", delay + 0.004);
+    tone(3260, 0.065, 0.016 * strength, "sine", delay + 0.008);
+  }
+
+  function playSound(kind = "tap") {
+    if (!soundEnabled) return;
+    switch (kind) {
+      case "call":
+        glassClink(0, 1);
+        glassClink(0.13, 0.82);
+        tone(780, 0.18, 0.018, "sine", 0.03);
+        break;
+      case "notification":
+        glassClink(0, 0.72);
+        break;
+      case "success":
+        tone(620, 0.07, 0.025, "sine", 0);
+        tone(880, 0.10, 0.022, "sine", 0.065);
+        break;
+      case "error":
+        tone(230, 0.10, 0.024, "sine", 0);
+        tone(180, 0.12, 0.018, "sine", 0.07);
+        break;
+      default:
+        tone(680, 0.035, 0.012, "sine", 0);
+    }
+  }
+
+  function updateSoundButton() {
+    const b = $("#soundBtn");
+    if (!b) return;
+    b.classList.toggle("active", soundEnabled);
+    b.title = soundEnabled ? "Sound on — click to mute" : "Sound off — click to enable";
+    b.innerHTML = soundEnabled ? "🔊 <span>Sound</span>" : "🔇 <span>Muted</span>";
+  }
+
+  function toggleSound() {
+    soundEnabled = !soundEnabled;
+    localStorage.setItem(SOUND_KEY, soundEnabled ? "1" : "0");
+    if (soundEnabled) {
+      ensureAudio();
+      playSound("success");
+      toast("Chaya sounds on 🔊");
+    } else {
+      toast("Chaya sounds muted 🔇");
+    }
+    updateSoundButton();
+  }
+
   function toast(text, type = "") {
+    if (type === "success") playSound("success");
+    else if (type === "error") playSound("error");
     const el = document.createElement("div");
     el.className = `toast ${type}`;
     el.textContent = text;
@@ -64,6 +155,7 @@
     isOnline = true;
     await setupServiceWorker();
     updateNotificationButton();
+    updateSoundButton();
   }
 
   async function setupServiceWorker() {
@@ -178,12 +270,15 @@
   function handleRealtime(kind, payload) {
     const row = payload.new || payload.old || {};
     if (kind === "sessions" && payload.eventType === "INSERT" && row.created_by_user_id !== currentUserId) {
+      playSound("call");
       notifySystem("🔥 Chaya Call!", `${row.created_by_name || "Someone"} വിളിക്കുന്നു — ചായ കുടിക്കാൻ പോയാലോ? ☕`, `call-${row.id}`, "home");
     }
     if (kind === "messages" && payload.eventType === "INSERT" && row.sender_user_id !== currentUserId) {
+      playSound("notification");
       notifySystem("💬 Chaya Chat", `${row.sender_name}: ${String(row.body || "").slice(0, 120)}`, `chat-${row.id}`, "chat");
     }
     if (kind === "payments" && payload.eventType === "UPDATE" && row.status === "paid" && row.to_name === me) {
+      playSound("notification");
       notifySystem("✅ Payment updated", `${row.from_name} marked ${money(row.amount)} as paid.`, `pay-${row.id}`, "split");
     }
     clearTimeout(syncTimer);
@@ -713,6 +808,13 @@
   }
 
   function bind() {
+    // First real user interaction unlocks Web Audio on mobile browsers.
+    document.addEventListener("pointerdown", e => {
+      if (e.target.closest("button, .btn, [data-view]")) {
+        ensureAudio();
+        if (!e.target.closest("#soundBtn")) playSound("tap");
+      }
+    }, { passive: true });
     $$('[data-view]').forEach(b => b.addEventListener("click", e => { e.preventDefault(); navigate(b.dataset.view); }));
     $("#startCallBtn").onclick = () => askConfirm("Chaya Call ഇടട്ടെ?", "ഇപ്പോൾ room-ൽ എല്ലാവർക്കും fresh tea plan തുടങ്ങാം. 🔥", "☕", () => safe(startCall));
     $("#joinCallBtn").onclick = () => { const s = activeSession(); if (s) safe(() => joinSession(s.id)); };
@@ -721,6 +823,7 @@
     $("#modalConfirmBtn").onclick = () => { const fn = pendingModalAction; pendingModalAction = null; if (fn) setTimeout(fn, 0); };
     $("#refreshBtn").onclick = () => safe(async () => { await pullAll(); renderAll(); toast("Refreshed ↻"); });
     $("#notifyBtn").onclick = () => safe(enableNotifications);
+    $("#soundBtn").onclick = toggleSound;
     $("#billAmount").addEventListener("input", renderSplitPreview);
     $("#payerSelect").addEventListener("change", renderSplitPreview);
     $("#selectAllBtn").onclick = () => { const inputs = $$("#memberPicker input"); const all = inputs.length && inputs.every(i => i.checked); inputs.forEach(i => { i.checked = !all; i.closest("label").classList.toggle("checked", !all); }); renderSplitPreview(); };

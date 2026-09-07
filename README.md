@@ -1,3 +1,9 @@
+# Chaya Kada V3.2 — Signature Sounds
+
+V3.2 adds lightweight Web Audio sounds: soft button taps, notification glass clink, double glass-cheers for incoming Chaya Calls, success/error tones, and a persistent Sound On/Off toggle. No audio files or database changes are required.
+
+> Note: when the site is fully closed, notification audio is controlled by the phone/browser operating system. The custom glass sounds play while the Chaya Kada page/PWA is active; Web Push still uses the system notification sound/vibration when closed.
+
 # Chaya Kada V3 — Secure + Chat + Notifications + Admin
 
 A responsive website for office tea calls, shared chat, bill splitting, fun stats and admin cleanup.

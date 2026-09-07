@@ -1,0 +1,15 @@
+Chaya Kada v3.2 Secure Sounds
+Base: v3.1 Secure
+
+Added:
+- Soft tap/click sound for buttons and navigation
+- Signature double glass-cheers sound for incoming Chaya Calls
+- Glass clink for new chat/payment notifications while app is active
+- Success and error feedback tones
+- Sound On/Off toggle in top bar
+- Sound preference saved in localStorage
+- Updated service-worker cache key for clean v3.2 rollout
+- System notification sound/vibration retained for closed-site push notifications
+
+No database migration is required for the sound update.
+FIX-V3-ROOM-JOIN.sql is included for reference/recovery and matches the v3.1 room-join fix.

@@ -1,4 +1,4 @@
-const CACHE = "chaya-kada-v3-static-1";
+const CACHE = "chaya-kada-v3-2-static-1";
 const CORE = [
   "./",
   "./index.html",
@@ -41,6 +41,8 @@ self.addEventListener("push", event => {
     icon: "assets/chaya-kadi.jpg",
     badge: "assets/chaya-kadi.jpg",
     tag: data.tag || "chaya-push",
+    silent: false,
+    vibrate: data.kind === "call" ? [80, 60, 80] : [60],
     data: { url: data.url || "./" }
   }));
 });
